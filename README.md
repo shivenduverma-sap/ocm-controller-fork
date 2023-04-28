@@ -1,4 +1,4 @@
-# ocm-controller
+# ocm-controller ![e2e-tests workflow](https://github.com/open-component-model/ocm-controller/actions/workflows/e2e.yaml/badge.svg)
 
 [![REUSE status](https://api.reuse.software/badge/github.com/open-component-model/ocm-controller)](https://api.reuse.software/info/github.com/open-component-model/ocm-controller)
 
