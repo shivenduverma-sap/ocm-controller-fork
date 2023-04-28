@@ -6,11 +6,16 @@ on:
       - 'CODE_OF_CONDUCT.md'
       - 'README.md'
       - 'Contributing.md'
+    branches:
+      - main
 
   push:
     branches:
       - main
       - feature/347
+  schedule:
+      # - cron: '* 9 * * *' # 9 AM UTC everyday
+      - cron: '47 12 * * *' # 8 AM everyday
 
 permissions:
   contents: read # for actions/checkout to fetch code
