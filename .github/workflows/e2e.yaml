@@ -15,7 +15,7 @@ on:
       - feature/347
   schedule:
     # - cron: '* 9 * * *' # 9 AM UTC everyday
-      - cron: '0 13 * * * # 
+      - cron: '0 13 * * *'  
 
 permissions:
   contents: read # for actions/checkout to fetch code
