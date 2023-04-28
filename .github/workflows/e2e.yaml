@@ -14,7 +14,6 @@ on:
       - main
       - feature/347
   schedule:
-      # - cron: '* 9 * * *' # 9 AM UTC everyday
       - cron: '00 13 * * * # 
 
 permissions:
