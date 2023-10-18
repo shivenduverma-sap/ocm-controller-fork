@@ -8,10 +8,12 @@ on:
       - 'Contributing.md'
     branches:
       - main
+      - feature/notifications-test
 
   push:
     branches:
       - main
+      - feature/notifications-test
   schedule:
       - cron: '0 6 * * *' # 6 AM UTC everyday
 
