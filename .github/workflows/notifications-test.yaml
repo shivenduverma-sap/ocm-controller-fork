@@ -1,0 +1,100 @@
+name: e2e
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'CODE_OF_CONDUCT.md'
+      - 'README.md'
+      - 'Contributing.md'
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+  schedule:
+      - cron: '0 6 * * *' # 6 AM UTC everyday
+
+permissions:
+  contents: read # for actions/checkout to fetch code
+
+jobs:
+  run-e2e-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: '${{ github.workspace }}/go.mod'
+      - name: Restore Go cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/work/_temp/_github_home/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Setup Kubernetes
+        uses: helm/kind-action@v1.5.0
+        with:
+          install_only: true
+      - uses: yokawasa/action-setup-kube-tools@v0.9.2
+        with:
+          kustomize: '5.0.1'
+          tilt: '0.32.2'
+      - name: Run E2E tests
+        id: e2e-tests
+        run: echo "------------------------Workflow run successful------------------------"
+      - name: Notify on Failure
+        id: slack-notification
+        uses: slackapi/slack-github-action@v1.23.0
+        if: ${{ github.ref_name  != 'main' }}
+        with:
+          # Slack channel id, channel name, or user id to post message.
+          # See also: https://api.slack.com/methods/chat.postMessage#channels
+          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs.
+          channel-id: 'C057ZEC15U3'
+          # For posting a simple plain text message
+          payload: |
+            {
+              "text": "${{ github.repository }} e2e Tests Status: ${{ steps.e2e-tests.conclusion }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ github.repository }} e2e Tests",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                   {
+                      "type": "mrkdwn",
+                      "text": "*Repository:* ${{ github.server_url }}/${{ github.repository }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Status:* ${{ job.status == 'success' && ':white_check_mark:' || ':x:' }}" 
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:* ${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Github Action:* <https://github.com/open-component-model/ocm-controller/actions/workflows/e2e.yaml|e2e>"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.OCM_GITHUB_SLACK_BOT_TOKEN }}
