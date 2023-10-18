@@ -15,7 +15,7 @@ on:
       - main
       - feature/notifications-test
   schedule:
-      - cron: '* * * * *' # 6 AM UTC everyday
+    - cron: '* * * * *' # 6 AM UTC everyday
   workflow_dispatch:
     inputs:
       notifyOnSlack:
