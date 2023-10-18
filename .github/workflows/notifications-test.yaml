@@ -57,7 +57,7 @@ jobs:
           PRINT1: ${{ contains(inputs.notifyOnSlack, 'true') }}
         run: echo "$PRINT1"
       - name: "Echo in file2"
-        if: ${{ github.event_name=="schedule" }}
+        if: ${{ github.event_name == 'schedule' }}
         env:
           PRINT2: ${{ github.event_name }}
         run: echo "$PRINT2"        
