@@ -15,7 +15,7 @@ on:
       - main
       - feature/notifications-test
   schedule:
-      - cron: '0 6 * * *' # 6 AM UTC everyday
+      - cron: '1 * * * *' # 6 AM UTC everyday
   workflow_dispatch:
     inputs:
       notifyOnSlack:
@@ -57,8 +57,9 @@ jobs:
           PRINT1: ${{ contains(inputs.notifyOnSlack, 'true') }}
         run: echo "$PRINT1"
       - name: "Echo in file2"
+        if: ${{ github.event_name=="schedule" }}
         env:
-          PRINT2: ${{ inputs.notifyOnSlack }}
+          PRINT2: ${{ github.event_name }}
         run: echo "$PRINT2"        
       - name: "Echo in file3"
         env:
