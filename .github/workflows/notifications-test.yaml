@@ -16,7 +16,11 @@ on:
       - feature/notifications-test
   schedule:
       - cron: '0 6 * * *' # 6 AM UTC everyday
-
+  workflow_dispatch:
+    inputs:
+      notifyOnSlack:
+        default: false
+        type: boolean
 permissions:
   contents: read # for actions/checkout to fetch code
 
@@ -47,7 +51,19 @@ jobs:
           tilt: '0.32.2'
       - name: Run E2E tests
         id: e2e-tests
-        run: echo "------------------------Workflow run successful------------------------"
+        run: echo "------------------------Workflow run successful------------------------"; 
+      - name: "Echo in file1"
+        env:
+          PRINT1: ${{ contains(inputs.notifyOnSlack, 'true') }}
+        run: echo "$PRINT1"
+      - name: "Echo in file2"
+        env:
+          PRINT2: ${{ inputs.notifyOnSlack }}
+        run: echo "$PRINT2"        
+      - name: "Echo in file3"
+        env:
+          PRINT3: ${{ github.event_name }}
+        run: echo "$PRINT3"      
       - name: Notify on Failure
         id: slack-notification
         uses: slackapi/slack-github-action@v1.23.0
