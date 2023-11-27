@@ -6,9 +6,11 @@ on:
   push:
     branches:
       - main
+      - feature/test-mend-2
   pull_request:
     branches:    
       - main
+      - feature/test-mend-2
   workflow_dispatch:
     inputs:
       logLevel:
@@ -157,6 +159,19 @@ jobs:
         then
           echo "${VIOLATIONS_VERBOSE}" | jq .
         fi
+          
+        {
+          echo "# Mend Scan Summary"
+          echo "[Mend Scan Tool](https://sap.whitesourcesoftware.com/Wss/WSS.html#!login)"
+          echo "| VIOLATION DESCRIPTION                         | NUMBER OF VIOLATIONS        |"
+          echo "| --------------------------------------------- | --------------------------- |"
+          echo "| HIGH/CRITICAL SECURITY VULNERABILITIES       | $security_vulnerability_no  |"
+          echo "| MAJOR UPDATES AVAILABLE                      | $major_updates_pending_no   |"
+          echo "| LICENSE REQUIRES REVIEW                      | $requires_review_no         |"
+          echo "| LICENSE RISK HIGH                            | $high_license_risk_no       |"
+          echo "| RESTRICTIED LICENSE FOR ON-PREMISE DELIVERY  | $VIOLATIONS                 |"
+        } >> $GITHUB_STEP_SUMMARY
+
         
         echo "security_vulnerability_no=$security_vulnerability_no" >> $GITHUB_OUTPUT 
         echo "major_updates_pending_no=$major_updates_pending_no" >> $GITHUB_OUTPUT
@@ -170,13 +185,32 @@ jobs:
         else 
           echo "status=white_check_mark" >> $GITHUB_OUTPUT
         fi
+     
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+      run: echo "$GITHUB_CONTEXT"
         
-    - name: Comment Mend Status on PR
+    - name: Check if PR exists
+      uses: 8BitJonny/gh-get-current-pr@2.2.0
+      id: PR
+      with:
+        filterOutClosed: true
+
+    - name: echo vars
+      run: |
+        echo ${{ github.event_name != 'schedule'}}
+        echo ${{ steps.PR.outputs.number }}
+        echo ${{ steps.PR.outputs.pr_found == 'true' }}
+        echo ${{ steps.PR.outputs.pr_open == 'open' }}
+        echo ${{ github.event_name != 'schedule' && steps.PR.outputs.pr_found == 'true' }}
+    
+    - name: Comment Mend Report on PR
+      if: ${{ github.event_name != 'schedule' && steps.PR.outputs.pr_found == 'true' }}
       uses: thollander/actions-comment-pull-request@v2.4.3
       with:
         message: |
-          ## Mend Scan Summary: :${{ steps.report.outputs.status }}:
-          ### Repository: ${{ github.repository }}
+          # Mend Scan Summary ${{ github.repository }} : :${{ steps.report.outputs.status }}:
           | VIOLATION DESCRIPTION                        | NUMBER OF VIOLATIONS        |
           | -------------------------------------------- | --------------------------- |
           | HIGH/CRITICAL SECURITY VULNERABILITIES       | ${{ steps.report.outputs.security_vulnerability_no }} |
@@ -188,3 +222,4 @@ jobs:
           [Detailed Logs: mend-scan-> Generate Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           [Mend UI](https://sap.whitesourcesoftware.com/Wss/WSS.html#!login)
         comment_tag: tag_mend_scan
+        pr_number: ${{ steps.PR.outputs.number }}
